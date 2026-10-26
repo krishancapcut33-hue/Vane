@@ -34,6 +34,7 @@ type ChatContext = {
   chatHistory: [string, string][];
   files: File[];
   fileIds: string[];
+  images: string[];
   sources: string[];
   chatId: string | undefined;
   optimizationMode: string;
@@ -51,6 +52,7 @@ type ChatContext = {
   setSources: (sources: string[]) => void;
   setFiles: (files: File[]) => void;
   setFileIds: (fileIds: string[]) => void;
+  setImages: React.Dispatch<React.SetStateAction<string[]>>;
   sendMessage: (
     message: string,
     messageId?: string,
@@ -242,6 +244,7 @@ export const chatContext = createContext<ChatContext>({
   chatHistory: [],
   chatId: '',
   fileIds: [],
+  images: [],
   files: [],
   sources: [],
   hasError: false,
@@ -259,6 +262,7 @@ export const chatContext = createContext<ChatContext>({
   rewrite: () => {},
   sendMessage: async () => {},
   setFileIds: () => {},
+  setImages: () => {},
   setFiles: () => {},
   setSources: () => {},
   setOptimizationMode: () => {},
@@ -286,6 +290,7 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
 
   const [files, setFiles] = useState<File[]>([]);
   const [fileIds, setFileIds] = useState<string[]>([]);
+  const [images, setImages] = useState<string[]>([]);
 
   const [sources, setSources] = useState<string[]>(['web']);
   const [optimizationMode, setOptimizationMode] = useState('speed');
@@ -477,6 +482,7 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
       chatHistory.current = [];
       setFiles([]);
       setFileIds([]);
+      setImages([]);
       setIsMessagesLoaded(false);
       setNotFound(false);
       setNewChatCreated(false);
@@ -728,11 +734,19 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
     messageId = messageId ?? crypto.randomBytes(7).toString('hex');
     const backendId = crypto.randomBytes(20).toString('hex');
 
+    // Images are per-message: take the pending ones and clear the input.
+    // On rewrite, reuse the original message's images (in-session only).
+    const messageImages = rewrite
+      ? (messages.find((m) => m.messageId === messageId)?.images ?? [])
+      : images;
+    if (!rewrite) setImages([]);
+
     const newMessage: Message = {
       messageId,
       chatId: chatId!,
       backendId,
       query: message,
+      images: messageImages.length ? messageImages : undefined,
       responseBlocks: [],
       status: 'answering',
       createdAt: new Date(),
@@ -756,6 +770,7 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
         },
         chatId: chatId!,
         files: fileIds,
+        images: messageImages,
         sources: sources,
         optimizationMode: optimizationMode,
         history: rewrite
@@ -813,6 +828,7 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
         chatHistory: chatHistory.current,
         files,
         fileIds,
+        images,
         sources,
         chatId,
         hasError,
@@ -823,6 +839,7 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
         notFound,
         optimizationMode,
         setFileIds,
+        setImages,
         setFiles,
         setSources,
         setOptimizationMode,

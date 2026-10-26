@@ -4,11 +4,16 @@ import TextareaAutosize from 'react-textarea-autosize';
 import Sources from './MessageInputActions/Sources';
 import Optimization from './MessageInputActions/Optimization';
 import Attach from './MessageInputActions/Attach';
+import AttachImage, {
+  ImagePreviews,
+  useImagePaste,
+} from './MessageInputActions/AttachImage';
 import { useChat } from '@/lib/hooks/useChat';
 import ModelSelector from './MessageInputActions/ChatModelSelector';
 
 const EmptyChatMessageInput = () => {
   const { sendMessage } = useChat();
+  const onPaste = useImagePaste();
 
   /* const [copilotEnabled, setCopilotEnabled] = useState(false); */
   const [message, setMessage] = useState('');
@@ -56,10 +61,12 @@ const EmptyChatMessageInput = () => {
       className="w-full"
     >
       <div className="flex flex-col bg-light-secondary dark:bg-dark-secondary px-3 pt-5 pb-3 rounded-2xl w-full border border-light-200 dark:border-dark-200 shadow-sm shadow-light-200/10 dark:shadow-black/20 transition-all duration-200 focus-within:border-light-300 dark:focus-within:border-dark-300">
+        <ImagePreviews />
         <TextareaAutosize
           ref={inputRef}
           value={message}
           onChange={(e) => setMessage(e.target.value)}
+          onPaste={onPaste}
           minRows={2}
           className="px-2 bg-transparent placeholder:text-[15px] placeholder:text-black/50 dark:placeholder:text-white/50 text-sm text-black dark:text-white resize-none focus:outline-none w-full max-h-24 lg:max-h-36 xl:max-h-48"
           placeholder="Ask anything..."
@@ -71,6 +78,7 @@ const EmptyChatMessageInput = () => {
               <Sources />
               <ModelSelector />
               <Attach />
+              <AttachImage />
             </div>
             <button
               disabled={message.trim().length === 0}

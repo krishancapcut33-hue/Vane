@@ -18,6 +18,7 @@ export type SearchAgentConfig = {
 export type SearchAgentInput = {
   chatHistory: ChatTurnMessage[];
   followUp: string;
+  images?: string[];
   config: SearchAgentConfig;
   chatId: string;
   messageId: string;

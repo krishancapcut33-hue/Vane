@@ -62,9 +62,25 @@ class OllamaLLM extends BaseLLM<OllamaConfig> {
               },
             })) || [],
         };
+      } else if (msg.role === 'user' && Array.isArray(msg.content)) {
+        return {
+          role: 'user',
+          content: msg.content
+            .map((p) => (p.type === 'text' ? p.text : ''))
+            .filter(Boolean)
+            .join('\n'),
+          images: msg.content
+            .filter((p) => p.type === 'image_url')
+            .map((p) =>
+              (p as { image_url: { url: string } }).image_url.url.replace(
+                /^data:[^;]+;base64,/,
+                '',
+              ),
+            ),
+        };
       }
 
-      return msg;
+      return msg as OllamaMessage;
     });
   }
 

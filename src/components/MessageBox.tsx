@@ -106,6 +106,19 @@ const MessageBox = ({
   return (
     <div className="space-y-6">
       <div className={'w-full pt-8 break-words'}>
+        {section.message.images && section.message.images.length > 0 && (
+          <div className="flex flex-row flex-wrap gap-2 mb-3">
+            {section.message.images.map((src, i) => (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                key={i}
+                src={src}
+                alt="Attached image"
+                className="h-24 w-24 object-cover rounded-lg border border-light-200 dark:border-dark-200"
+              />
+            ))}
+          </div>
+        )}
         <h2 className="text-black dark:text-white font-medium text-3xl lg:w-9/12">
           {section.message.query}
         </h2>

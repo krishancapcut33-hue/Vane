@@ -18,6 +18,7 @@ export interface BaseMessage {
 export interface Message extends BaseMessage {
   backendId: string;
   query: string;
+  images?: string[];
   responseBlocks: Block[];
   status: 'answering' | 'completed' | 'error';
 }

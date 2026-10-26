@@ -134,7 +134,15 @@ class SearchAgent {
         ...input.chatHistory,
         {
           role: 'user',
-          content: input.followUp,
+          content: input.images?.length
+            ? [
+                { type: 'text', text: input.followUp },
+                ...input.images.map((url) => ({
+                  type: 'image_url' as const,
+                  image_url: { url },
+                })),
+              ]
+            : input.followUp,
         },
       ],
     });

@@ -3,10 +3,15 @@ import { ArrowUp } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import TextareaAutosize from 'react-textarea-autosize';
 import AttachSmall from './MessageInputActions/AttachSmall';
+import AttachImage, {
+  ImagePreviews,
+  useImagePaste,
+} from './MessageInputActions/AttachImage';
 import { useChat } from '@/lib/hooks/useChat';
 
 const MessageInput = () => {
-  const { loading, sendMessage } = useChat();
+  const { loading, sendMessage, images } = useChat();
+  const onPaste = useImagePaste();
 
   const [copilotEnabled, setCopilotEnabled] = useState(false);
   const [message, setMessage] = useState('');
@@ -14,12 +19,15 @@ const MessageInput = () => {
   const [mode, setMode] = useState<'multi' | 'single'>('single');
 
   useEffect(() => {
-    if (textareaRows >= 2 && message && mode === 'single') {
+    if (
+      ((textareaRows >= 2 && message) || images.length > 0) &&
+      mode === 'single'
+    ) {
       setMode('multi');
-    } else if (!message && mode === 'multi') {
+    } else if (!message && images.length === 0 && mode === 'multi') {
       setMode('single');
     }
-  }, [textareaRows, mode, message]);
+  }, [textareaRows, mode, message, images.length]);
 
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
 
@@ -65,11 +73,18 @@ const MessageInput = () => {
         mode === 'multi' ? 'flex-col rounded-2xl' : 'flex-row rounded-full',
       )}
     >
-      {mode === 'single' && <AttachSmall />}
+      {mode === 'multi' && <ImagePreviews />}
+      {mode === 'single' && (
+        <>
+          <AttachSmall />
+          <AttachImage />
+        </>
+      )}
       <TextareaAutosize
         ref={inputRef}
         value={message}
         onChange={(e) => setMessage(e.target.value)}
+        onPaste={onPaste}
         onHeightChange={(height, props) => {
           setTextareaRows(Math.ceil(height / props.rowHeight));
         }}
@@ -86,7 +101,10 @@ const MessageInput = () => {
       )}
       {mode === 'multi' && (
         <div className="flex flex-row items-center justify-between w-full pt-2">
-          <AttachSmall />
+          <div className="flex flex-row items-center">
+            <AttachSmall />
+            <AttachImage />
+          </div>
           <button
             disabled={message.trim().length === 0 || loading}
             className="bg-[#24A0ED] text-white disabled:text-black/50 dark:disabled:text-white/50 hover:bg-opacity-85 transition duration-100 disabled:bg-[#e0e0dc79] dark:disabled:bg-[#ececec21] rounded-full p-2"

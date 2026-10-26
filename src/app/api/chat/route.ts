@@ -42,6 +42,7 @@ const bodySchema = z.object({
     .optional()
     .default([]),
   files: z.array(z.string()).optional().default([]),
+  images: z.array(z.string().startsWith('data:image/')).optional().default([]),
   chatModel: chatModelSchema,
   embeddingModel: embeddingModelSchema,
   systemInstructions: z.string().nullable().optional().default(''),
@@ -210,20 +211,26 @@ export const POST = async (req: Request) => {
       }
     });
 
-    agent.searchAsync(session, {
-      chatHistory: history,
-      followUp: message.content,
-      chatId: body.message.chatId,
-      messageId: body.message.messageId,
-      config: {
-        llm,
-        embedding: embedding,
-        sources: body.sources as SearchSources[],
-        mode: body.optimizationMode,
-        fileIds: body.files,
-        systemInstructions: body.systemInstructions || 'None',
-      },
-    });
+    agent
+      .searchAsync(session, {
+        chatHistory: history,
+        followUp: message.content,
+        images: body.images,
+        chatId: body.message.chatId,
+        messageId: body.message.messageId,
+        config: {
+          llm,
+          embedding: embedding,
+          sources: body.sources as SearchSources[],
+          mode: body.optimizationMode,
+          fileIds: body.files,
+          systemInstructions: body.systemInstructions || 'None',
+        },
+      })
+      .catch((err) => {
+        console.error('Search agent failed:', err);
+        session.emit('error', { data: err?.message ?? 'Search failed' });
+      });
 
     ensureChatExists({
       id: body.message.chatId,
